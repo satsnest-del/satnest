@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SatsNest – claim a little crypto every hour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1b2e;--panel:#16273f;--line:#243a58;--text:#eaf0f7;--muted:#8ca0b8;--gold:#f5b83d;--ink:#2a1c00;--ok:#5ed39a;--bad:#f07a6b}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+main{max-width:480px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em}
+h1 span{color:var(--gold)}
+.tag{margin:0 0 24px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
+input{width:100%;padding:12px 14px;margin-bottom:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+input:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;cursor:pointer}
+.row{display:flex;gap:10px}
+.row button{flex:1}
+.main-btn{background:var(--gold);color:var(--ink)}
+.alt-btn{background:transparent;color:var(--text);border:1px solid var(--line)}
+.ghost{background:transparent;color:var(--muted);padding:8px 10px;font-weight:400}
+.who{margin:0 0 16px;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.coin{margin-bottom:14px}
+.coin h2{margin:0;font-size:18px;font-weight:600}
+.bal{margin:4px 0 14px;font-size:26px;font-weight:800;color:var(--gold);overflow-wrap:anywhere}
+.claim{width:100%;background:var(--gold);color:var(--ink);font-size:17px;padding:14px}
+.claim:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+#msg{min-height:24px;margin:16px 2px 0;font-size:15px}
+#msg.ok{color:var(--ok)}
+#msg.bad{color:var(--bad)}
+footer{margin-top:28px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Sats<span>Nest</span></h1>
+    <button id="out" class="ghost" hidden>Log out</button>
+  </header>
+  <p class="tag">Claim a little crypto every hour.</p>
+
+  <section id="auth" class="card">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" inputmode="email">
+    <label for="pw">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+    <div class="row">
+      <button id="login" class="main-btn">Log in</button>
+      <button id="signup" class="alt-btn">Create account</button>
+    </div>
+  </section>
+
+  <section id="app" hidden>
+    <p id="who" class="who"></p>
+    <div id="coins"></div>
+  </section>
+
+  <p id="msg" role="status"></p>
+  <footer>Rewards are small and can change. Your balance is the total of your claims.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// 1) Paste your anon (publishable) key below. It is safe to be public.
+const SUPABASE_URL = "https://vcjvvpjqjvljjhltgbfs.supabase.co";
+const SUPABASE_KEY = "sb_publishable_HDceKS0qBKJv1QkGJBWRsA_JAqTTLQ4";
+
+// Display only. The real amounts and cooldowns are enforced by the claim function.
+const COINS = [
+  { id: "LTC", name: "Litecoin", reward: 0.00001, hours: 1 },
+  { id: "BTC", name: "Bitcoin", reward: 0.000001, hours: 1 }
+];
+
+const $ = (id) => document.getElementById(id);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let rows = [];
+let timer = null;
+
+function say(text, bad) {
+  const m = $("msg");
+  m.textContent = text;
+  m.className = bad ? "bad" : "ok";
+}
+const fmt = (n) => Number(n).toFixed(8);
+
+function mmss(ms) {
+  const s = Math.ceil(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m + ":" + String(s % 60).padStart(2, "0");
+}
+
+function stats(c) {
+  let bal = 0, last = null;
+  for (const r of rows) {
+    if (r.asset !== c.id) continue;
+    bal += Number(r.amount);
+    if (!last && r.type === "claim") last = new Date(r.created_at);
+  }
+  return { bal, next: last ? last.getTime() + c.hours * 3600000 : 0 };
+}
+
+function draw() {
+  const box = $("coins");
+  box.textContent = "";
+  for (const c of COINS) {
+    const s = stats(c);
+    const card = document.createElement("div");
+    card.className = "card coin";
+    card.dataset.id = c.id;
+    card.dataset.next = s.next;
+    card.innerHTML =
+      '<h2>' + c.name + '</h2>' +
+      '<p class="bal"></p>' +
+      '<button class="claim"></button>';
+    card.querySelector(".bal").textContent = fmt(s.bal) + " " + c.id;
+    box.appendChild(card);
+  }
+  tick();
+  clearInterval(timer);
+  timer = setInterval(tick, 1000);
+}
+
+function tick() {
+  document.querySelectorAll(".coin").forEach((card) => {
+    const c = COINS.find((x) => x.id === card.dataset.id);
+    const left = Number(card.dataset.next) - Date.now();
+    const btn = card.querySelector(".claim");
+    if (left > 0) {
+      btn.disabled = true;
+      btn.textContent = "Next claim in " + mmss(left);
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Claim " + c.reward + " " + c.id;
+    }
+  });
+}
+
+async function load() {
+  const { data, error } = await db
+    .from("ledger")
+    .select("asset,type,amount,created_at")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) { say("Couldn’t load your balance. Refresh the page and try again.", true); return; }
+  rows = data;
+  draw();
+}
+
+async function claim(id, btn) {
+  const c = COINS.find((x) => x.id === id);
+  btn.disabled = true;
+  btn.textContent = "Claiming…";
+  say("");
+  const { data, error } = await db.functions.invoke("claim", { body: { asset: id } });
+  if (error || !data) say("Claim failed. Wait a moment and try again.", true);
+  else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
+  else say("Too soon. Wait for the timer to finish.", true);
+  await load();
+}
+
+$("coins").addEventListener("click", (e) => {
+  const btn = e.target.closest(".claim");
+  if (btn && !btn.disabled) claim(btn.closest(".coin").dataset.id, btn);
+});
+
+$("login").onclick = async () => {
+  say("");
+  const { error } = await db.auth.signInWithPassword({
+    email: $("email").value.trim(),
+    password: $("pw").value
+  });
+  if (error) say(error.message, true);
+};
+
+$("signup").onclick = async () => {
+  say("");
+  const { data, error } = await db.auth.signUp({
+    email: $("email").value.trim(),
+    password: $("pw").value
+  });
+  if (error) { say(error.message, true); return; }
+  if (!data.session) say("Account created. Check your email to confirm it, then log in.");
+};
+
+$("out").onclick = () => db.auth.signOut();
+
+function show(session) {
+  const on = !!session;
+  $("auth").hidden = on;
+  $("app").hidden = !on;
+  $("out").hidden = !on;
+  if (on) {
+    $("who").textContent = session.user.email;
+    load();
+  } else {
+    clearInterval(timer);
+    rows = [];
+  }
+}
+
+if (SUPABASE_KEY.startsWith("PASTE")) {
+  say("Setup needed: paste your Supabase anon key into index.html.", true);
+}
+db.auth.onAuthStateChange((_e, session) => show(session));
+db.auth.getSession().then(({ data }) => show(data.session));
+</script>
+</body>
+</html>
