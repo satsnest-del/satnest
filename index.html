@@ -160,8 +160,14 @@ async function claim(id, btn) {
   btn.textContent = "Claiming…";
   say("");
   const { data, error } = await db.functions.invoke("claim", { body: { asset: id } });
-  if (error || !data) say("Claim failed. Wait a moment and try again.", true);
-  else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
+  if (error || !data) {
+    let why = error ? error.message : "no response";
+    try {
+      const b = await error.context.json();
+      why = (b.error || b.message || b.msg || JSON.stringify(b)) + " (status " + error.context.status + ")";
+    } catch (e) {}
+    say("Claim failed: " + why, true);
+  } else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
   else say("Too soon. Wait for the timer to finish.", true);
   await load();
 }
