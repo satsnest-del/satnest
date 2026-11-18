@@ -60,6 +60,7 @@ footer{margin-top:28px;color:var(--muted);font-size:13px}
 
   <section id="app" hidden>
     <p id="who" class="who"></p>
+    <div id="ts" style="margin-bottom:14px"></div>
     <div id="coins"></div>
   </section>
 
@@ -68,6 +69,7 @@ footer{margin-top:28px;color:var(--muted);font-size:13px}
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
 <script>
 // 1) Paste your anon (publishable) key below. It is safe to be public.
 const SUPABASE_URL = "https://vcjvvpjqjvljjhltgbfs.supabase.co";
@@ -83,6 +85,24 @@ const $ = (id) => document.getElementById(id);
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let rows = [];
 let timer = null;
+
+// 2) Paste your Cloudflare Turnstile SITE key here (the public one, never the secret).
+const TURNSTILE_SITE_KEY = "0x4AAAAAAGGmWBDCRsFYBpRa";
+let tsId = null;
+let tsToken = null;
+
+function mountCaptcha() {
+  if (tsId !== null || !window.turnstile || $("app").hidden) return;
+  if (TURNSTILE_SITE_KEY.startsWith("PASTE")) return;
+  tsId = turnstile.render("#ts", {
+    sitekey: TURNSTILE_SITE_KEY,
+    theme: "dark",
+    callback: (t) => { tsToken = t; },
+    "expired-callback": () => { tsToken = null; },
+    "error-callback": () => { tsToken = null; }
+  });
+}
+function onTurnstileReady() { mountCaptcha(); }
 
 function say(text, bad) {
   const m = $("msg");
@@ -156,10 +176,13 @@ async function load() {
 
 async function claim(id, btn) {
   const c = COINS.find((x) => x.id === id);
+  if (TURNSTILE_SITE_KEY.startsWith("PASTE")) { say("Setup needed: paste your Turnstile site key into index.html.", true); return; }
+  if (!tsToken) { say("Finish the security check above first.", true); return; }
   btn.disabled = true;
   btn.textContent = "Claiming…";
   say("");
-  const { data, error } = await db.functions.invoke("claim", { body: { asset: id } });
+  const token = tsToken;
+  const { data, error } = await db.functions.invoke("claim", { body: { asset: id, token } });
   if (error || !data) {
     let why = error ? error.message : "no response";
     try {
@@ -169,6 +192,8 @@ async function claim(id, btn) {
     say("Claim failed: " + why, true);
   } else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
   else say("Too soon. Wait for the timer to finish.", true);
+  tsToken = null;
+  if (tsId !== null) turnstile.reset(tsId);
   await load();
 }
 
@@ -205,6 +230,7 @@ function show(session) {
   $("out").hidden = !on;
   if (on) {
     $("who").textContent = session.user.email;
+    mountCaptcha();
     load();
   } else {
     clearInterval(timer);
