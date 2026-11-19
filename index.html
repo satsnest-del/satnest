@@ -29,14 +29,21 @@ button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16p
 .ghost{background:transparent;color:var(--muted);padding:8px 10px;font-weight:400}
 .who{margin:0 0 16px;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
 .coin{margin-bottom:14px}
-.coin h2{margin:0;font-size:18px;font-weight:600}
-.bal{margin:4px 0 14px;font-size:26px;font-weight:800;color:var(--gold);overflow-wrap:anywhere}
+.coin h2{margin:0 0 12px;font-size:18px;font-weight:600}
+
 .claim{width:100%;background:var(--gold);color:var(--ink);font-size:17px;padding:14px}
 .claim:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
 #msg{min-height:24px;margin:16px 2px 0;font-size:15px}
 #msg.ok{color:var(--ok)}
 #msg.bad{color:var(--bad)}
 footer{margin-top:28px;color:var(--muted);font-size:13px}
+.welcome{text-align:center;padding:40px 20px;margin-top:24px}
+.welcome h2{margin:0 0 10px;font-size:26px;font-weight:800;letter-spacing:-.01em}
+.welcome p{margin:0 0 22px;color:var(--muted);overflow-wrap:anywhere}
+.sum{margin-bottom:14px}
+.sum-t{font-size:14px;color:var(--muted);margin-bottom:6px}
+.srow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.srow b{color:var(--gold);overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -58,8 +65,15 @@ footer{margin-top:28px;color:var(--muted);font-size:13px}
     </div>
   </section>
 
+  <section id="welcome" class="card welcome" hidden>
+    <h2>Welcome to SatsNest</h2>
+    <p>Signed in as <span id="wmail"></span></p>
+    <button id="go" class="main-btn">Continue</button>
+  </section>
+
   <section id="app" hidden>
     <p id="who" class="who"></p>
+    <div id="sum" class="card sum"></div>
     <div id="ts" style="margin-bottom:14px"></div>
     <div id="coins"></div>
   </section>
@@ -130,18 +144,28 @@ function stats(c) {
 function draw() {
   const box = $("coins");
   box.textContent = "";
+  const sum = $("sum");
+  sum.textContent = "";
+  const st = document.createElement("div");
+  st.className = "sum-t";
+  st.textContent = "Your balance";
+  sum.appendChild(st);
   for (const c of COINS) {
     const s = stats(c);
     const card = document.createElement("div");
     card.className = "card coin";
     card.dataset.id = c.id;
     card.dataset.next = s.next;
-    card.innerHTML =
-      '<h2>' + c.name + '</h2>' +
-      '<p class="bal"></p>' +
-      '<button class="claim"></button>';
-    card.querySelector(".bal").textContent = fmt(s.bal) + " " + c.id;
+    card.innerHTML = '<h2>' + c.name + '</h2><button class="claim"></button>';
     box.appendChild(card);
+    const row = document.createElement("div");
+    row.className = "srow";
+    const nm = document.createElement("span");
+    nm.textContent = c.name;
+    const vl = document.createElement("b");
+    vl.textContent = fmt(s.bal) + " " + c.id;
+    row.append(nm, vl);
+    sum.appendChild(row);
   }
   tick();
   clearInterval(timer);
@@ -223,19 +247,40 @@ $("signup").onclick = async () => {
 
 $("out").onclick = () => db.auth.signOut();
 
+let stage = "none";
+let welcomeTimer = null;
+
+function showApp() {
+  clearTimeout(welcomeTimer);
+  stage = "app";
+  $("welcome").hidden = true;
+  $("app").hidden = false;
+  mountCaptcha();
+}
+
+$("go").onclick = showApp;
+
 function show(session) {
   const on = !!session;
   $("auth").hidden = on;
-  $("app").hidden = !on;
   $("out").hidden = !on;
-  if (on) {
-    $("who").textContent = session.user.email;
-    mountCaptcha();
-    load();
-  } else {
+  if (!on) {
+    stage = "none";
+    clearTimeout(welcomeTimer);
     clearInterval(timer);
     rows = [];
+    $("welcome").hidden = true;
+    $("app").hidden = true;
+    return;
   }
+  $("who").textContent = session.user.email;
+  $("wmail").textContent = session.user.email;
+  if (stage !== "none") return;
+  stage = "welcome";
+  $("welcome").hidden = false;
+  $("app").hidden = true;
+  welcomeTimer = setTimeout(showApp, 2500);
+  load();
 }
 
 if (SUPABASE_KEY.startsWith("PASTE")) {
