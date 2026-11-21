@@ -93,8 +93,8 @@ nav button.on{color:#fff;background:#2a1d4d}
   <section id="auth" class="card">
     <p class="muted" style="margin-top:0">Claim a little crypto every hour.</p>
     <form id="f" autocomplete="on">
-      <div id="ts" style="margin-bottom:10px"></div>
-      <p class="muted" style="margin-top:0">Complete the security check to log in.</p>
+      <div id="ts"></div>
+      <p id="chk" class="muted" style="margin-top:0">Checking that you’re human…</p>
       <fieldset id="fs" disabled>
         <label for="email">Email</label>
         <input id="email" name="username" type="email" autocomplete="username" inputmode="email">
@@ -224,19 +224,26 @@ document.addEventListener("visibilitychange", () => {
   else markSeen();
 });
 
+function chk(on, text) {
+  const e = $("chk");
+  if (text) e.textContent = text;
+  e.hidden = !on;
+}
 function mountCaptcha() {
   if (tsId !== null || !window.turnstile) return;
   tsId = turnstile.render("#ts", {
     sitekey: TURNSTILE_SITE_KEY, theme: "dark",
-    callback: (t) => { tsToken = t; $("fs").disabled = false; },
-    "expired-callback": () => { tsToken = null; $("fs").disabled = true; },
-    "error-callback": () => { tsToken = null; $("fs").disabled = true; }
+    appearance: "interaction-only",
+    callback: (t) => { tsToken = t; $("fs").disabled = false; chk(false); },
+    "expired-callback": () => { tsToken = null; $("fs").disabled = true; chk(true, "Checking that you’re human…"); },
+    "error-callback": () => { tsToken = null; $("fs").disabled = true; chk(true, "The security check couldn’t load. Refresh the page and try again."); }
   });
 }
 function onTurnstileReady() { mountCaptcha(); }
 function resetCaptcha() {
   tsToken = null;
   $("fs").disabled = true;
+  chk(true, "Checking that you’re human…");
   if (tsId !== null && window.turnstile) turnstile.reset(tsId);
 }
 
