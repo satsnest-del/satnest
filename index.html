@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b0816;--panel:#161228;--line:#2a2347;--text:#efeaff;--muted:#9a90b8;--pur:#6b3fb8;--gold:#f5b83d;--ink:#2a1c00;--ok:#5ed39a;--bad:#f07a6b}
+:root{--bg:#0b0816;--panel:#161228;--line:#2a2347;--text:#efeaff;--muted:#9a90b8;--pur:#6b3fb8;--gold:#f5b83d;--ink:#2a1c00;--ok:#5ed39a;--bad:#f07a6b;--btc:#f7931a}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;padding-top:env(safe-area-inset-top)}
+body{margin:0;background:radial-gradient(900px 420px at 50% -80px,#2c1862,transparent 70%),var(--bg);color:var(--text);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;padding-top:env(safe-area-inset-top)}
 .bar{position:sticky;top:0;z-index:5;background:var(--pur);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
 .bar h1{margin:0;font-size:22px;font-weight:800}
 .right{display:flex;align-items:center;gap:4px}
@@ -35,8 +35,8 @@ fieldset:disabled{opacity:.45}
 .row button{flex:1}
 .main-btn{background:var(--gold);color:var(--ink)}
 .alt-btn{background:transparent;color:var(--text);border:1px solid var(--line)}
-.claim{width:100%;font-size:17px;padding:14px;background:var(--gold);color:var(--ink)}
-.claim:disabled,.main-btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.claim{width:100%;font-size:17px;padding:14px;background:var(--gold);color:var(--ink);box-shadow:0 6px 20px rgba(245,184,61,.25)}
+.claim:disabled,.main-btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .srow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .srow b{color:var(--gold);overflow-wrap:anywhere;text-align:right}
 .soon{opacity:.6}
@@ -55,6 +55,23 @@ details p{margin:8px 0 0;color:var(--muted);font-size:14px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;background:#120e22;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;background:none;color:var(--muted);border-radius:0;padding:14px 4px;font-size:14px}
 nav button.on{color:#fff;background:#2a1d4d}
+.hero{background:linear-gradient(160deg,#2b1b5c,#161228 70%);border:1px solid #3a2d6e;border-radius:18px;padding:20px;margin-bottom:14px;box-shadow:0 10px 40px rgba(107,63,184,.25)}
+.lbl{font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.big{display:flex;align-items:baseline;gap:10px;font-size:30px;font-weight:800;margin:6px 0 2px;overflow-wrap:anywhere}
+.big small{font-size:16px;color:var(--btc)}
+.sub{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;border-top:1px solid #3a2d6e;margin-top:12px;padding-top:10px}
+.sub b{color:var(--text)}
+.chead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.chead h2{margin:0}
+.chead p{margin:0;font-size:13px;color:var(--muted)}
+.badge{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;flex:none}
+.b-BTC{background:linear-gradient(145deg,#ffb347,var(--btc))}
+.b-LTC{background:linear-gradient(145deg,#d6def5,#7f90bd)}
+.prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 12px}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pur),var(--gold));transition:width 1s linear}
+.ad{margin-bottom:14px;text-align:center}
+.ad small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+.ad iframe{width:100%;height:90px;border:0;border-radius:12px;background:var(--panel)}
 </style>
 </head>
 <body>
@@ -99,7 +116,10 @@ nav button.on{color:#fff;background:#2a1d4d}
 
   <section id="app" hidden>
     <div id="t-earn">
+      <div id="hero" class="hero"></div>
+      <div id="ad0" class="ad" hidden></div>
       <div id="coins"></div>
+      <div id="ad1" class="ad" hidden></div>
       <p class="muted">Rewards are small and can change. Claim each coin once an hour.</p>
     </div>
 
@@ -169,10 +189,14 @@ const SUPABASE_URL = "https://vcjvvpjqjvljjhltgbfs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_HDceKS0qBKJv1QkGJBWRsA_JAqTTLQ4";
 const TURNSTILE_SITE_KEY = "0x4AAAAAAGGmWBDCRsFYBpRa";
 
+// Ads: paste the embed link your ad network gives you between the quotes.
+// First link = slot above the coins, second link = slot below. Leave "" to hide a slot.
+const AD_URLS = ["", ""];
+
 // Display only. The server enforces the real amounts, cooldowns and minimums.
 const COINS = [
-  { id: "LTC", name: "Litecoin", reward: 0.00001, hours: 1 },
-  { id: "BTC", name: "Bitcoin", reward: 0.000001, hours: 1 }
+  { id: "LTC", name: "Litecoin", sym: "Ł", reward: 0.00001, hours: 1 },
+  { id: "BTC", name: "Bitcoin", sym: "₿", reward: 0.000001, hours: 1 }
 ];
 const MIN = { LTC: 0.001, BTC: 0.00005 };
 
@@ -196,6 +220,21 @@ function resetCaptcha() {
   tsToken = null;
   $("fs").disabled = true;
   if (tsId !== null && window.turnstile) turnstile.reset(tsId);
+}
+
+function mountAds() {
+  AD_URLS.forEach((url, i) => {
+    const box = $("ad" + i);
+    if (!url || box.firstChild) return;
+    const s = document.createElement("small");
+    s.textContent = "Advertisement";
+    const f = document.createElement("iframe");
+    f.src = url;
+    f.loading = "lazy";
+    f.setAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin");
+    box.append(s, f);
+    box.hidden = false;
+  });
 }
 
 function say(t, bad) { const m = $("msg"); m.textContent = t; m.className = bad ? "bad" : "ok"; }
@@ -224,19 +263,32 @@ function stats(c) {
 }
 
 function draw() {
-  const box = $("coins"), sum = $("wsum");
+  const box = $("coins"), sum = $("wsum"), hero = $("hero");
   box.textContent = "";
   sum.textContent = "";
+  hero.textContent = "";
   const h = document.createElement("h2");
   h.textContent = "Your balance";
   sum.appendChild(h);
+  const btc = stats(COINS.find((x) => x.id === "BTC"));
+  const ltc = stats(COINS.find((x) => x.id === "LTC"));
+  const claims = rows.filter((r) => r.type === "claim").length;
+  hero.innerHTML = '<div class="lbl">Your balance</div>' +
+    '<div class="big"><span id="hb"></span><small>BTC</small></div>' +
+    '<div class="sub"><span>Litecoin <b id="hl"></b></span><span>Claims <b id="hc"></b></span></div>';
+  $("hb").textContent = fmt(btc.bal);
+  $("hl").textContent = fmt(ltc.bal) + " LTC";
+  $("hc").textContent = claims;
   for (const c of COINS) {
     const s = stats(c);
     const card = document.createElement("div");
     card.className = "card coin";
     card.dataset.id = c.id;
     card.dataset.next = s.next;
-    card.innerHTML = '<h2>' + c.name + '</h2><button class="claim"></button>';
+    card.innerHTML =
+      '<div class="chead"><div class="badge b-' + c.id + '">' + c.sym + '</div>' +
+      '<div><h2>' + c.name + '</h2><p>+' + c.reward + ' ' + c.id + ' per claim</p></div></div>' +
+      '<div class="prog"><i></i></div><button class="claim"></button>';
     box.appendChild(card);
     const row = document.createElement("div");
     row.className = "srow";
@@ -260,6 +312,8 @@ function tick() {
     const btn = card.querySelector(".claim");
     btn.disabled = left > 0;
     btn.textContent = left > 0 ? "Next claim in " + mmss(left) : "Claim " + c.reward + " " + c.id;
+    const pct = left > 0 ? (1 - left / (c.hours * 3600000)) * 100 : 100;
+    card.querySelector(".prog i").style.width = Math.max(0, Math.min(100, pct)) + "%";
   });
 }
 
@@ -401,6 +455,7 @@ function showApp() {
   $("nav").hidden = false;
   $("pill").hidden = false;
   $("mbtn").hidden = false;
+  mountAds();
   tab("earn");
 }
 $("go").onclick = showApp;
