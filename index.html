@@ -202,9 +202,27 @@ const MIN = { LTC: 0.001, BTC: 0.00005 };
 
 const $ = (id) => document.getElementById(id);
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: true }
+  auth: { persistSession: true, autoRefreshToken: true, storage: window.sessionStorage }
 });
 let rows = [], wd = [], timer = null, tsId = null, tsToken = null;
+
+// Log in again after being away this long (change the 2 to any number of minutes).
+const AWAY_MS = 2 * 60 * 1000;
+const SEEN = "sn_seen";
+function markSeen() { try { sessionStorage.setItem(SEEN, String(Date.now())); } catch (e) {} }
+function awayTooLong() {
+  try { const t = Number(sessionStorage.getItem(SEEN)); return t > 0 && Date.now() - t > AWAY_MS; }
+  catch (e) { return false; }
+}
+let staleAtStart = awayTooLong(), ending = false, fresh = false;
+markSeen();
+setInterval(() => { if (!document.hidden) markSeen(); }, 5000);
+function endSession(msg) { ending = true; say(msg, true); db.auth.signOut(); }
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { markSeen(); return; }
+  if (stage !== "none" && awayTooLong()) endSession("You were away for a while. Please log in again.");
+  else markSeen();
+});
 
 function mountCaptcha() {
   if (tsId !== null || !window.turnstile) return;
@@ -424,23 +442,25 @@ document.addEventListener("click", () => { $("menu").hidden = true; });
 async function doLogin() {
   say("");
   if (!tsToken) { say("Finish the security check first.", true); return; }
+  fresh = true;
   const { error } = await db.auth.signInWithPassword({
     email: $("email").value.trim(), password: $("pw").value,
     options: { captchaToken: tsToken }
   });
   resetCaptcha();
-  if (error) say(error.message, true);
+  if (error) { fresh = false; say(error.message, true); }
 }
 async function doSignup() {
   say("");
   if (!tsToken) { say("Finish the security check first.", true); return; }
+  fresh = true;
   const { data, error } = await db.auth.signUp({
     email: $("email").value.trim(), password: $("pw").value,
     options: { captchaToken: tsToken }
   });
   resetCaptcha();
-  if (error) { say(error.message, true); return; }
-  if (!data.session) say("Account created. Check your email to confirm it, then log in.");
+  if (error) { fresh = false; say(error.message, true); return; }
+  if (!data.session) { fresh = false; say("Account created. Check your email to confirm it, then log in."); }
 }
 $("f").addEventListener("submit", (e) => { e.preventDefault(); doLogin(); });
 $("signup").onclick = doSignup;
@@ -461,8 +481,18 @@ function showApp() {
 $("go").onclick = showApp;
 
 function show(session) {
+  if (session) {
+    if (ending) return;
+    if (staleAtStart) {
+      staleAtStart = false;
+      endSession("You were away for a while. Please log in again.");
+      return;
+    }
+  }
   $("auth").hidden = !!session;
   if (!session) {
+    ending = false;
+    staleAtStart = false;
     stage = "none";
     clearTimeout(welcomeTimer);
     clearInterval(timer);
@@ -476,10 +506,15 @@ function show(session) {
   $("who").textContent = session.user.email;
   $("wmail").textContent = session.user.email;
   if (stage !== "none") return;
-  stage = "welcome";
-  $("welcome").hidden = false;
-  welcomeTimer = setTimeout(showApp, 2500);
   load();
+  if (fresh) {
+    fresh = false;
+    stage = "welcome";
+    $("welcome").hidden = false;
+    welcomeTimer = setTimeout(showApp, 2500);
+  } else {
+    showApp();
+  }
 }
 db.auth.onAuthStateChange((_e, session) => show(session));
 db.auth.getSession().then(({ data }) => show(data.session));
