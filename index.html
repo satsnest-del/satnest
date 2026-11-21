@@ -3,57 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SatsNest – claim a little crypto every hour</title>
+<title>SatsNest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0e1b2e;--panel:#16273f;--line:#243a58;--text:#eaf0f7;--muted:#8ca0b8;--gold:#f5b83d;--ink:#2a1c00;--ok:#5ed39a;--bad:#f07a6b}
+:root{--bg:#0b0816;--panel:#161228;--line:#2a2347;--text:#efeaff;--muted:#9a90b8;--pur:#6b3fb8;--gold:#f5b83d;--ink:#2a1c00;--ok:#5ed39a;--bad:#f07a6b}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-main{max-width:480px;margin:0 auto;padding:20px 16px 48px}
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em}
-h1 span{color:var(--gold)}
-.tag{margin:0 0 24px;color:var(--muted)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;padding-top:env(safe-area-inset-top)}
+.bar{position:sticky;top:0;z-index:5;background:var(--pur);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px}
+.bar h1{margin:0;font-size:22px;font-weight:800}
+.pill{display:flex;align-items:center;gap:8px;background:#fff;color:#1a1033;border-radius:999px;padding:4px 4px 4px 14px;font-weight:800;font-size:14px}
+.pill i{width:30px;height:30px;border-radius:50%;background:var(--gold);color:#fff;display:grid;place-items:center;font-style:normal;font-size:18px}
+main{max-width:480px;margin:0 auto;padding:18px 16px 110px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:18px;font-weight:600}
+.muted{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
 label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
-input{width:100%;padding:12px 14px;margin-bottom:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
-input:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input,select{width:100%;padding:12px 14px;margin-bottom:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;cursor:pointer}
 .row{display:flex;gap:10px}
 .row button{flex:1}
 .main-btn{background:var(--gold);color:var(--ink)}
 .alt-btn{background:transparent;color:var(--text);border:1px solid var(--line)}
-.ghost{background:transparent;color:var(--muted);padding:8px 10px;font-weight:400}
-.who{margin:0 0 16px;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
-.coin{margin-bottom:14px}
-.coin h2{margin:0 0 12px;font-size:18px;font-weight:600}
-.claim{width:100%;background:var(--gold);color:var(--ink);font-size:17px;padding:14px}
-.claim:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
-#msg{min-height:24px;margin:16px 2px 0;font-size:15px}
+.claim{width:100%;font-size:17px;padding:14px;background:var(--gold);color:var(--ink)}
+.claim:disabled,.main-btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.srow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.srow b{color:var(--gold);overflow-wrap:anywhere;text-align:right}
+.soon{opacity:.6}
+.tagc{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--line);color:var(--muted);font-size:12px;font-weight:600}
+.maxrow{display:flex;gap:10px}
+.maxrow input{flex:1}
+.maxrow button{margin-bottom:14px}
+#msg{min-height:24px;margin:0 2px 14px;font-size:15px}
 #msg.ok{color:var(--ok)}
 #msg.bad{color:var(--bad)}
-footer{margin-top:28px;color:var(--muted);font-size:13px}
 .welcome{text-align:center;padding:40px 20px;margin-top:24px}
-.welcome h2{margin:0 0 10px;font-size:26px;font-weight:800;letter-spacing:-.01em}
-.welcome p{margin:0 0 22px;color:var(--muted);overflow-wrap:anywhere}
-.sum{margin-bottom:14px}
-.sum-t{font-size:14px;color:var(--muted);margin-bottom:6px}
-.srow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
-.srow b{color:var(--gold);overflow-wrap:anywhere}
+.welcome h2{font-size:26px;font-weight:800}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;background:#120e22;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;color:var(--muted);border-radius:0;padding:14px 4px;font-size:14px}
+nav button.on{color:#fff;background:#2a1d4d}
 </style>
 </head>
 <body>
+<div class="bar">
+  <h1 id="ttl">SatsNest</h1>
+  <div id="pill" class="pill" hidden><span id="pv">0.00000000 btc</span><i>₿</i></div>
+</div>
 <main>
-  <header>
-    <h1>Sats<span>Nest</span></h1>
-    <button id="out" class="ghost" hidden>Log out</button>
-  </header>
-  <p class="tag">Claim a little crypto every hour.</p>
+  <p id="msg" role="status"></p>
 
   <section id="auth" class="card">
+    <p class="muted" style="margin-top:0">Claim a little crypto every hour.</p>
     <form id="f" autocomplete="on">
       <label for="email">Email</label>
       <input id="email" name="username" type="email" autocomplete="username" inputmode="email">
@@ -69,69 +72,101 @@ footer{margin-top:28px;color:var(--muted);font-size:13px}
 
   <section id="welcome" class="card welcome" hidden>
     <h2>Welcome to SatsNest</h2>
-    <p>Signed in as <span id="wmail"></span></p>
+    <p class="muted">Signed in as <span id="wmail"></span></p>
     <button id="go" class="main-btn">Continue</button>
   </section>
 
   <section id="app" hidden>
-    <p id="who" class="who"></p>
-    <div id="sum" class="card sum"></div>
-    <div id="coins"></div>
-  </section>
+    <div id="t-earn">
+      <div id="coins"></div>
+      <p class="muted">Rewards are small and can change. Claim each coin once an hour.</p>
+    </div>
 
-  <p id="msg" role="status"></p>
-  <footer>Rewards are small and can change. Your balance is the total of your claims.</footer>
+    <div id="t-wallet" hidden>
+      <div id="wsum" class="card"></div>
+      <div class="card">
+        <h2>Withdraw</h2>
+        <label for="wc">Coin</label>
+        <select id="wc"></select>
+        <label for="wa">Your wallet address</label>
+        <input id="wa" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <label for="wm">Amount</label>
+        <div class="maxrow">
+          <input id="wm" inputmode="decimal" placeholder="0.00000000">
+          <button id="wmax" type="button" class="alt-btn">Max</button>
+        </div>
+        <p id="wmin" class="muted"></p>
+        <button id="wb" class="main-btn" style="width:100%">Request withdrawal</button>
+        <p class="muted">Check the address carefully. Coins sent to a wrong address can’t be recovered.</p>
+      </div>
+      <div class="card">
+        <h2>Your requests</h2>
+        <div id="wlist" class="muted">No requests yet.</div>
+      </div>
+    </div>
+
+    <div id="t-more" hidden>
+      <div class="card soon"><h2>Watch Ad<span class="tagc">Coming soon</span></h2><p class="muted" style="margin:0">Watch a short ad for a bonus.</p></div>
+      <div class="card soon"><h2>Invite Friends<span class="tagc">Coming soon</span></h2><p class="muted" style="margin:0">Share your code and both get a bonus.</p></div>
+      <div class="card"><p id="who" class="muted" style="margin-top:0"></p><button id="out" class="alt-btn" style="width:100%">Log out</button></div>
+    </div>
+  </section>
 </main>
+
+<nav id="nav" hidden>
+  <button id="n-earn" data-t="earn">Earn</button>
+  <button id="n-wallet" data-t="wallet">Wallet</button>
+  <button id="n-more" data-t="more">More</button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
 <script>
-// 1) Paste your anon (publishable) key below. It is safe to be public.
 const SUPABASE_URL = "https://vcjvvpjqjvljjhltgbfs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_HDceKS0qBKJv1QkGJBWRsA_JAqTTLQ4";
+const TURNSTILE_SITE_KEY = "0x4AAAAAAGGmWBDCRsFYBpRa";
 
-// Display only. The real amounts and cooldowns are enforced by the claim function.
+// Display only. The server enforces the real amounts, cooldowns and minimums.
 const COINS = [
   { id: "LTC", name: "Litecoin", reward: 0.00001, hours: 1 },
   { id: "BTC", name: "Bitcoin", reward: 0.000001, hours: 1 }
 ];
+const MIN = { LTC: 0.001, BTC: 0.00005 };
 
 const $ = (id) => document.getElementById(id);
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: false, autoRefreshToken: true }
 });
-let rows = [];
-let timer = null;
-
-// 2) Paste your Cloudflare Turnstile SITE key here (the public one, never the secret).
-const TURNSTILE_SITE_KEY = "0x4AAAAAAGGmWBDCRsFYBpRa";
-let tsId = null;
-let tsToken = null;
+let rows = [], wd = [], timer = null, tsId = null, tsToken = null;
 
 function mountCaptcha() {
   if (tsId !== null || !window.turnstile) return;
-  if (TURNSTILE_SITE_KEY.startsWith("PASTE")) return;
   tsId = turnstile.render("#ts", {
-    sitekey: TURNSTILE_SITE_KEY,
-    theme: "dark",
+    sitekey: TURNSTILE_SITE_KEY, theme: "dark",
     callback: (t) => { tsToken = t; },
     "expired-callback": () => { tsToken = null; },
     "error-callback": () => { tsToken = null; }
   });
 }
 function onTurnstileReady() { mountCaptcha(); }
-
-function say(text, bad) {
-  const m = $("msg");
-  m.textContent = text;
-  m.className = bad ? "bad" : "ok";
+function resetCaptcha() {
+  tsToken = null;
+  if (tsId !== null && window.turnstile) turnstile.reset(tsId);
 }
-const fmt = (n) => Number(n).toFixed(8);
 
+function say(t, bad) { const m = $("msg"); m.textContent = t; m.className = bad ? "bad" : "ok"; }
+const fmt = (n) => Number(n).toFixed(8);
 function mmss(ms) {
   const s = Math.ceil(ms / 1000);
-  const m = Math.floor(s / 60);
-  return m + ":" + String(s % 60).padStart(2, "0");
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+async function errText(error) {
+  let why = error ? error.message : "no response";
+  try {
+    const b = await error.context.json();
+    why = (b.error || b.message || b.msg || JSON.stringify(b)) + " (status " + error.context.status + ")";
+  } catch (e) {}
+  return why;
 }
 
 function stats(c) {
@@ -145,14 +180,12 @@ function stats(c) {
 }
 
 function draw() {
-  const box = $("coins");
+  const box = $("coins"), sum = $("wsum");
   box.textContent = "";
-  const sum = $("sum");
   sum.textContent = "";
-  const st = document.createElement("div");
-  st.className = "sum-t";
-  st.textContent = "Your balance";
-  sum.appendChild(st);
+  const h = document.createElement("h2");
+  h.textContent = "Your balance";
+  sum.appendChild(h);
   for (const c of COINS) {
     const s = stats(c);
     const card = document.createElement("div");
@@ -169,6 +202,7 @@ function draw() {
     vl.textContent = fmt(s.bal) + " " + c.id;
     row.append(nm, vl);
     sum.appendChild(row);
+    if (c.id === "BTC") $("pv").textContent = fmt(s.bal) + " btc";
   }
   tick();
   clearInterval(timer);
@@ -180,25 +214,37 @@ function tick() {
     const c = COINS.find((x) => x.id === card.dataset.id);
     const left = Number(card.dataset.next) - Date.now();
     const btn = card.querySelector(".claim");
-    if (left > 0) {
-      btn.disabled = true;
-      btn.textContent = "Next claim in " + mmss(left);
-    } else {
-      btn.disabled = false;
-      btn.textContent = "Claim " + c.reward + " " + c.id;
-    }
+    btn.disabled = left > 0;
+    btn.textContent = left > 0 ? "Next claim in " + mmss(left) : "Claim " + c.reward + " " + c.id;
   });
 }
 
+function drawWd() {
+  const box = $("wlist");
+  box.textContent = "";
+  if (!wd.length) { box.textContent = "No requests yet."; return; }
+  for (const w of wd) {
+    const row = document.createElement("div");
+    row.className = "srow";
+    const left = document.createElement("span");
+    left.textContent = fmt(w.amount) + " " + w.asset + " · " + w.status;
+    const right = document.createElement("span");
+    right.textContent = w.address.slice(0, 6) + "…" + w.address.slice(-4);
+    row.append(left, right);
+    box.appendChild(row);
+  }
+}
+
 async function load() {
-  const { data, error } = await db
-    .from("ledger")
-    .select("asset,type,amount,created_at")
-    .order("created_at", { ascending: false })
-    .limit(1000);
-  if (error) { say("Couldn’t load your balance. Refresh the page and try again.", true); return; }
-  rows = data;
+  const [a, b] = await Promise.all([
+    db.from("ledger").select("asset,type,amount,created_at").order("created_at", { ascending: false }).limit(1000),
+    db.from("withdrawals").select("asset,amount,address,status,created_at").order("created_at", { ascending: false }).limit(20)
+  ]);
+  if (a.error) { say("Couldn’t load your balance. Refresh the page and try again.", true); return; }
+  rows = a.data;
+  wd = b.data || [];
   draw();
+  drawWd();
 }
 
 async function claim(id, btn) {
@@ -207,82 +253,96 @@ async function claim(id, btn) {
   btn.textContent = "Claiming…";
   say("");
   const { data, error } = await db.functions.invoke("claim", { body: { asset: id } });
-  if (error || !data) {
-    let why = error ? error.message : "no response";
-    try {
-      const b = await error.context.json();
-      why = (b.error || b.message || b.msg || JSON.stringify(b)) + " (status " + error.context.status + ")";
-    } catch (e) {}
-    say("Claim failed: " + why, true);
-  } else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
+  if (error || !data) say("Claim failed: " + await errText(error), true);
+  else if (data.result === "ok") say("Claimed " + c.reward + " " + id + ".");
   else say("Too soon. Wait for the timer to finish.", true);
   await load();
 }
+
+async function withdraw() {
+  const asset = $("wc").value, address = $("wa").value.trim(), amount = $("wm").value;
+  if (!address || !amount) { say("Enter an address and an amount.", true); return; }
+  $("wb").disabled = true;
+  say("");
+  const { data, error } = await db.functions.invoke("withdraw", { body: { asset, address, amount } });
+  if (error || !data) say("Withdrawal failed: " + await errText(error), true);
+  else { say("Withdrawal requested. It will be sent to your wallet soon."); $("wa").value = ""; $("wm").value = ""; }
+  $("wb").disabled = false;
+  await load();
+}
+
+function minNote() { const a = $("wc").value; $("wmin").textContent = "Minimum: " + MIN[a] + " " + a; }
+for (const c of COINS) {
+  const o = document.createElement("option");
+  o.value = c.id; o.textContent = c.name + " (" + c.id + ")";
+  $("wc").appendChild(o);
+}
+minNote();
+$("wc").onchange = minNote;
+$("wmax").onclick = () => { $("wm").value = fmt(stats({ id: $("wc").value }).bal); };
+$("wb").onclick = withdraw;
 
 $("coins").addEventListener("click", (e) => {
   const btn = e.target.closest(".claim");
   if (btn && !btn.disabled) claim(btn.closest(".coin").dataset.id, btn);
 });
 
-function resetCaptcha() {
-  tsToken = null;
-  if (tsId !== null && window.turnstile) turnstile.reset(tsId);
+const TITLES = { earn: "Earn", wallet: "Wallet", more: "More" };
+function tab(n) {
+  for (const k in TITLES) {
+    $("t-" + k).hidden = k !== n;
+    $("n-" + k).classList.toggle("on", k === n);
+  }
+  $("ttl").textContent = TITLES[n];
 }
+document.querySelectorAll("nav button").forEach((b) => { b.onclick = () => tab(b.dataset.t); });
 
 async function doLogin() {
   say("");
   if (!tsToken) { say("Finish the security check first.", true); return; }
   const { error } = await db.auth.signInWithPassword({
-    email: $("email").value.trim(),
-    password: $("pw").value,
+    email: $("email").value.trim(), password: $("pw").value,
     options: { captchaToken: tsToken }
   });
   resetCaptcha();
   if (error) say(error.message, true);
 }
-
 async function doSignup() {
   say("");
   if (!tsToken) { say("Finish the security check first.", true); return; }
   const { data, error } = await db.auth.signUp({
-    email: $("email").value.trim(),
-    password: $("pw").value,
+    email: $("email").value.trim(), password: $("pw").value,
     options: { captchaToken: tsToken }
   });
   resetCaptcha();
   if (error) { say(error.message, true); return; }
   if (!data.session) say("Account created. Check your email to confirm it, then log in.");
 }
-
 $("f").addEventListener("submit", (e) => { e.preventDefault(); doLogin(); });
 $("signup").onclick = doSignup;
-
 $("out").onclick = () => db.auth.signOut();
 
-let stage = "none";
-let welcomeTimer = null;
-
+let stage = "none", welcomeTimer = null;
 function showApp() {
   clearTimeout(welcomeTimer);
   stage = "app";
   $("welcome").hidden = true;
   $("app").hidden = false;
-  mountCaptcha();
+  $("nav").hidden = false;
+  $("pill").hidden = false;
+  tab("earn");
 }
-
 $("go").onclick = showApp;
 
 function show(session) {
-  const on = !!session;
-  $("auth").hidden = on;
-  $("out").hidden = !on;
-  if (!on) {
+  $("auth").hidden = !!session;
+  if (!session) {
     stage = "none";
     clearTimeout(welcomeTimer);
     clearInterval(timer);
-    rows = [];
-    $("welcome").hidden = true;
-    $("app").hidden = true;
+    rows = []; wd = [];
+    for (const id of ["welcome", "app", "nav", "pill"]) $(id).hidden = true;
+    $("ttl").textContent = "SatsNest";
     resetCaptcha();
     mountCaptcha();
     return;
@@ -292,13 +352,8 @@ function show(session) {
   if (stage !== "none") return;
   stage = "welcome";
   $("welcome").hidden = false;
-  $("app").hidden = true;
   welcomeTimer = setTimeout(showApp, 2500);
   load();
-}
-
-if (SUPABASE_KEY.startsWith("PASTE")) {
-  say("Setup needed: paste your Supabase anon key into index.html.", true);
 }
 db.auth.onAuthStateChange((_e, session) => show(session));
 db.auth.getSession().then(({ data }) => show(data.session));
